@@ -85,90 +85,38 @@
 
 <script>
     // ★★★ ここにAPIキーを入れてください！ ★★★
-    const API_KEY = "aaab18fbbb4f73e6" ; 
+    const API_KEY = "aaab18fbbb4f73e6"; 
 
     function runGacha() {
-        if (API_KEY === "ここにあなたのAPIキーを貼り付ける") {
-            alert("APIキーが設定されていません。コードを編集してキーを入力してください！");
-            return;
-        }
-
         const middleArea = document.getElementById('areaSelect').value;
         const genre = document.getElementById('genreSelect').value;
         const budget = document.getElementById('budgetSelect').value;
 
-        // JSONP用のコールバック関数名を指定
-        const callbackName = 'callback_' + Math.floor(Math.random() * 100000);
-        
-        // APIリクエストURLの構築
-        // count=100 で最大100件取得し、その中からランダムに選ぶ
-        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY}&middle_area=${middleArea}&genre=${genre}&count=100&format=jsonp&callback=${callbackName}`;
+        // 診断用：あえてcallbackを指定せず、純粋なデータを見に行きます
+        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY.trim()}&middle_area=${middleArea}&genre=${genre}&count=100&format=json`;
         
         if(budget) {
             url += `&budget=${budget}`;
         }
 
-        // ローディング表示（簡易）
-        const btn = document.querySelector('.gacha-btn');
-        const originalText = btn.innerText;
-        btn.innerText = "検索中...";
-        btn.disabled = true;
-
-        // グローバルスコープにコールバック関数を定義
-        window[callbackName] = function(data) {
-            btn.innerText = originalText;
-            btn.disabled = false;
-            
-            if (!data.results || !data.results.shop || data.results.shop.length === 0) {
-                alert("条件に合うお店が見つかりませんでした...別の条件で試してみて！");
-                return;
-            }
-
-            // ランダムに1件選出
-            const shops = data.results.shop;
-            const winner = shops[Math.floor(Math.random() * shops.length)];
-            
-            displayResult(winner);
-            
-            // 後始末：scriptタグとコールバック関数を削除
-            delete window[callbackName];
-            document.getElementById(callbackName).remove();
-        };
-
-        // JSONPを実行するためのscriptタグを生成
-        const script = document.createElement('script');
-        script.src = url;
-        script.id = callbackName;
-script.onerror = function() {
-    alert("エラーが発生しました！APIキーが正しいか確認してください。\nまた、広告ブロック機能がONだと動かないことがあります。");
-    btn.innerText = "もう一度";
-    btn.disabled = false;
-};
-        document.body.appendChild(script);
-    }
-
-    function displayResult(shop) {
-        document.getElementById('resultArea').classList.remove('hidden');
+        // 画面にURLを表示する（診断用）
+        const resultArea = document.getElementById('resultArea');
+        resultArea.classList.remove('hidden');
+        resultArea.innerHTML = `
+            <div class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                <p class="font-bold mb-2">▼ 原因特定のための診断リンク ▼</p>
+                <p class="text-xs mb-2">このリンクをクリックしてみてください。<br>もし「エラー」が表示されたら、APIキーか登録内容に問題があります。</p>
+                <a href="${url}" target="_blank" class="text-blue-600 underline break-all font-mono text-sm">${url}</a>
+            </div>
+        `;
         
-        document.getElementById('shopName').innerText = shop.name;
-        document.getElementById('shopGenre').innerText = shop.genre.name;
-        document.getElementById('shopAccess').innerText = shop.mobile_access;
-        document.getElementById('shopLink').href = shop.urls.pc; // ここをアフィリエイトリンクに変えると収益化
-        
-        // 画像がある場合とない場合の処理
-        const imgUrl = shop.photo.pc.l || shop.photo.mobile.l;
-        if(imgUrl) {
-            document.getElementById('shopImage').src = imgUrl;
-        } else {
-            document.getElementById('shopImage').src = "https://via.placeholder.com/400x200?text=No+Image";
-        }
-
-        // 結果までスクロール
-        document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+        // 結果エリアまでスクロール
+        resultArea.scrollIntoView({ behavior: 'smooth' });
     }
 </script>
 
 </body>
 </html>
+
 
 
