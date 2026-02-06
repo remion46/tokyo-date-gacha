@@ -17,7 +17,7 @@
 <div class="app-container shadow-lg flex flex-col items-center p-6">
     <header class="w-full text-center mb-8 mt-4">
         <h1 class="text-2xl font-bold text-pink-500 tracking-wider">TOKYO DATE GACHA</h1>
-        
+        <p class="text-gray-400 text-xs">Vercel Serverless版</p>
     </header>
 
     <div class="w-full space-y-4 mb-8">
@@ -76,7 +76,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="debugArea" class="hidden w-full p-4 mt-4 bg-red-100 text-red-800 text-xs font-mono break-all rounded"></div>
 
     <footer class="mt-auto py-6 text-center text-gray-400 text-xs">
@@ -85,49 +85,33 @@
 </div>
 
 <script>
-    // ▼ APIキー
-    const API_KEY = "aaab18fbbb4f73e6"; 
+    // ★APIキーはもうここには書きません！
 
     async function runGacha() {
         const btn = document.querySelector('.gacha-btn');
         const originalText = btn.innerText;
         btn.innerText = "データ取得中...";
         btn.disabled = true;
-        
-        // エラー表示をリセット
         document.getElementById('debugArea').classList.add('hidden');
 
         const middleArea = document.getElementById('areaSelect').value;
         const genre = document.getElementById('genreSelect').value;
         const budget = document.getElementById('budgetSelect').value;
 
-        // リクルートAPIのURL
-        let targetUrl = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY}&middle_area=${middleArea}&genre=${genre}&count=100&format=json`;
+        // 自分のサーバー（api/gacha.js）にリクエストを送る
+        let targetUrl = `/api/gacha?middle_area=${middleArea}&genre=${genre}`;
         if(budget) targetUrl += `&budget=${budget}`;
 
-        // ★最強プロキシ corsproxy.io を使用
-        // encodeURIComponentで包んで渡すのが鉄則
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-
         try {
-            console.log("Fetching:", proxyUrl);
-            
-            const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                throw new Error(`Server Error: ${response.status}`);
-            }
-
+            const response = await fetch(targetUrl);
             const data = await response.json();
-            console.log("Data received:", data);
 
-            // リクルートAPI側のエラーチェック（キー間違いなど）
-            if (data.results.error) {
-                throw new Error(`API Error: ${data.results.error[0].message}`);
+            if (!response.ok) {
+                throw new Error(data.error || 'Server Error');
             }
 
-            if (!data.results.shop || data.results.shop.length === 0) {
-                alert("条件に合うお店が見つかりませんでした...エリアや予算を変えてみて！");
+            if (!data.results || !data.results.shop || data.results.shop.length === 0) {
+                alert("条件に合うお店が見つかりませんでした...別の条件で試してみて！");
                 return;
             }
 
@@ -137,12 +121,9 @@
 
         } catch (error) {
             console.error(error);
-            // エラー内容を画面に出す（これで原因が確定します）
             const debugArea = document.getElementById('debugArea');
-            debugArea.innerText = "【通信エラー詳細】\n" + error.message;
+            debugArea.innerText = "【エラー】" + error.message;
             debugArea.classList.remove('hidden');
-            
-            alert("エラーが発生しました。\n画面下の赤い文字を確認してください。");
         } finally {
             btn.innerText = originalText;
             btn.disabled = false;
