@@ -6,7 +6,6 @@
     <title>東京デートガチャ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* スマホアプリっぽく見せるためのスタイル */
         body { background-color: #f3f4f6; font-family: 'Helvetica Neue', Arial, sans-serif; }
         .app-container { max-width: 450px; margin: 0 auto; background: white; min-height: 100vh; position: relative; }
         .gacha-btn { transition: transform 0.1s; }
@@ -59,7 +58,7 @@
         ガチャを回す！
     </button>
 
-    <div id="resultArea" class="w-full hidden animate-fade-in">
+    <div id="resultArea" class="w-full hidden animate-fade-in pb-10">
         <div class="border-t pt-6">
             <p class="text-center text-gray-500 text-sm mb-2">運命の行き先は...</p>
             
@@ -84,39 +83,82 @@
 </div>
 
 <script>
-    // ★★★ ここにAPIキーを入れてください！ ★★★
+    // ▼ APIキーは "" の中にそのまま入れてください
     const API_KEY = "aaab18fbbb4f73e6"; 
+
+    // 通信を受け取るための関数を先に作っておく（固定名）
+    window.catchData = function(data) {
+        const btn = document.querySelector('.gacha-btn');
+        btn.innerText = "ガチャを回す！";
+        btn.disabled = false;
+        
+        console.log("データ受信成功:", data); // デバッグ用
+
+        if (!data.results || !data.results.shop || data.results.shop.length === 0) {
+            alert("条件に合うお店が見つかりませんでした...エリアや予算を変えてみて！");
+            return;
+        }
+
+        const shops = data.results.shop;
+        const winner = shops[Math.floor(Math.random() * shops.length)];
+        displayResult(winner);
+    };
 
     function runGacha() {
         const middleArea = document.getElementById('areaSelect').value;
         const genre = document.getElementById('genreSelect').value;
         const budget = document.getElementById('budgetSelect').value;
+        
+        // APIキーのゴミ掃除
+        const cleanKey = API_KEY.trim();
 
-        // 診断用：あえてcallbackを指定せず、純粋なデータを見に行きます
-        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY.trim()}&middle_area=${middleArea}&genre=${genre}&count=100&format=json`;
+        // タイムスタンプをつけてキャッシュを回避
+        const timestamp = new Date().getTime();
+
+        // コールバック関数名を catchData に固定
+        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${cleanKey}&middle_area=${middleArea}&genre=${genre}&count=100&format=jsonp&callback=catchData&_t=${timestamp}`;
         
         if(budget) {
             url += `&budget=${budget}`;
         }
 
-        // 画面にURLを表示する（診断用）
-        const resultArea = document.getElementById('resultArea');
-        resultArea.classList.remove('hidden');
-        resultArea.innerHTML = `
-            <div class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
-                <p class="font-bold mb-2">▼ 原因特定のための診断リンク ▼</p>
-                <p class="text-xs mb-2">このリンクをクリックしてみてください。<br>もし「エラー」が表示されたら、APIキーか登録内容に問題があります。</p>
-                <a href="${url}" target="_blank" class="text-blue-600 underline break-all font-mono text-sm">${url}</a>
-            </div>
-        `;
+        const btn = document.querySelector('.gacha-btn');
+        btn.innerText = "通信中...";
+        btn.disabled = true;
+
+        // 古いスクリプトタグがあれば消す
+        const oldScript = document.getElementById('gacha-script');
+        if(oldScript) oldScript.remove();
+
+        const script = document.createElement('script');
+        script.src = url;
+        script.id = 'gacha-script';
         
-        // 結果エリアまでスクロール
-        resultArea.scrollIntoView({ behavior: 'smooth' });
+        script.onerror = function() {
+            alert("通信エラー！\nもしかして、まだ「広告ブロック」がONになっていませんか？\nOFFにしてリロードしてください。");
+            btn.innerText = "ガチャを回す！";
+            btn.disabled = false;
+        };
+
+        document.body.appendChild(script);
+    }
+
+    function displayResult(shop) {
+        document.getElementById('resultArea').classList.remove('hidden');
+        document.getElementById('shopName').innerText = shop.name;
+        document.getElementById('shopGenre').innerText = shop.genre.name;
+        document.getElementById('shopAccess').innerText = shop.mobile_access;
+        document.getElementById('shopLink').href = shop.urls.pc;
+        
+        const imgUrl = shop.photo.pc.l || shop.photo.mobile.l;
+        if(imgUrl) {
+            document.getElementById('shopImage').src = imgUrl;
+        } else {
+            document.getElementById('shopImage').src = "https://via.placeholder.com/400x200?text=No+Image";
+        }
+        document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
     }
 </script>
 
 </body>
 </html>
-
-
-
