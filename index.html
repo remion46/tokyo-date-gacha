@@ -17,7 +17,7 @@
 <div class="app-container shadow-lg flex flex-col items-center p-6">
     <header class="w-full text-center mb-8 mt-4">
         <h1 class="text-2xl font-bold text-pink-500 tracking-wider">TOKYO DATE GACHA</h1>
-        <p class="text-gray-400 text-xs">迷えるカップルのための行き先決定ツール</p>
+        <p class="text-gray-400 text-xs">API使用・プロキシ経由版</p>
     </header>
 
     <div class="w-full space-y-4 mb-8">
@@ -83,64 +83,50 @@
 </div>
 
 <script>
-    // ▼ APIキーは "" の中にそのまま入れてください
+    // ▼ ここにAPIキーを入れてください
     const API_KEY = "aaab18fbbb4f73e6"; 
 
-    // 通信を受け取るための関数を先に作っておく（固定名）
-    window.catchData = function(data) {
+    async function runGacha() {
         const btn = document.querySelector('.gacha-btn');
-        btn.innerText = "ガチャを回す！";
-        btn.disabled = false;
-        
-        console.log("データ受信成功:", data); // デバッグ用
+        const originalText = btn.innerText;
+        btn.innerText = "データ取得中...";
+        btn.disabled = true;
 
-        if (!data.results || !data.results.shop || data.results.shop.length === 0) {
-            alert("条件に合うお店が見つかりませんでした...エリアや予算を変えてみて！");
-            return;
-        }
-
-        const shops = data.results.shop;
-        const winner = shops[Math.floor(Math.random() * shops.length)];
-        displayResult(winner);
-    };
-
-    function runGacha() {
         const middleArea = document.getElementById('areaSelect').value;
         const genre = document.getElementById('genreSelect').value;
         const budget = document.getElementById('budgetSelect').value;
-        
-        // APIキーのゴミ掃除
-        const cleanKey = API_KEY.trim();
 
-        // タイムスタンプをつけてキャッシュを回避
-        const timestamp = new Date().getTime();
+        // リクルートのAPI URLを作成
+        let targetUrl = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY}&middle_area=${middleArea}&genre=${genre}&count=100&format=json`;
+        if(budget) targetUrl += `&budget=${budget}`;
 
-        // コールバック関数名を catchData に固定
-        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${cleanKey}&middle_area=${middleArea}&genre=${genre}&count=100&format=jsonp&callback=catchData&_t=${timestamp}`;
-        
-        if(budget) {
-            url += `&budget=${budget}`;
-        }
+        // ★ここが裏技：中継サーバー(AllOrigins)を経由させるURLを作る
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
-        const btn = document.querySelector('.gacha-btn');
-        btn.innerText = "通信中...";
-        btn.disabled = true;
+        try {
+            // fetchを使ってデータを取得（JSONPは使いません）
+            const response = await fetch(proxyUrl);
+            const proxyData = await response.json();
+            
+            // 中継サーバーから「生データ」を取り出してJSONに戻す
+            const data = JSON.parse(proxyData.contents);
 
-        // 古いスクリプトタグがあれば消す
-        const oldScript = document.getElementById('gacha-script');
-        if(oldScript) oldScript.remove();
+            if (!data.results || !data.results.shop || data.results.shop.length === 0) {
+                alert("条件に合うお店が見つかりませんでした...エリアや予算を変えてみて！");
+                return;
+            }
 
-        const script = document.createElement('script');
-        script.src = url;
-        script.id = 'gacha-script';
-        
-        script.onerror = function() {
-            alert("通信エラー！\nもしかして、まだ「広告ブロック」がONになっていませんか？\nOFFにしてリロードしてください。");
-            btn.innerText = "ガチャを回す！";
+            const shops = data.results.shop;
+            const winner = shops[Math.floor(Math.random() * shops.length)];
+            displayResult(winner);
+
+        } catch (error) {
+            console.error(error);
+            alert("エラーが発生しました。\nしばらく待ってから試すか、条件を変えてみてください。");
+        } finally {
+            btn.innerText = originalText;
             btn.disabled = false;
-        };
-
-        document.body.appendChild(script);
+        }
     }
 
     function displayResult(shop) {
