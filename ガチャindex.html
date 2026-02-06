@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>東京デートガチャ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* スマホアプリっぽく見せるためのスタイル */
+        body { background-color: #f3f4f6; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .app-container { max-width: 450px; margin: 0 auto; background: white; min-height: 100vh; position: relative; }
+        .gacha-btn { transition: transform 0.1s; }
+        .gacha-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<div class="app-container shadow-lg flex flex-col items-center p-6">
+    <header class="w-full text-center mb-8 mt-4">
+        <h1 class="text-2xl font-bold text-pink-500 tracking-wider">TOKYO DATE GACHA</h1>
+        <p class="text-gray-400 text-xs">迷えるカップルのための行き先決定ツール</p>
+    </header>
+
+    <div class="w-full space-y-4 mb-8">
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">エリア</label>
+            <select id="areaSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-300">
+                <option value="Y055">新宿</option>
+                <option value="Y030">渋谷</option>
+                <option value="Y005">銀座・有楽町</option>
+                <option value="Y015">上野・御徒町</option>
+                <option value="Y045">赤坂・六本木</option>
+            </select>
+        </div>
+        
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">ジャンル・気分</label>
+            <select id="genreSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-300">
+                <option value="G001">居酒屋で楽しく</option>
+                <option value="G014">カフェ・スイーツ</option>
+                <option value="G008">焼肉・ホルモン</option>
+                <option value="G006">イタリアン・フレンチ</option>
+                <option value="G004">和食でしっぽり</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">予算（ディナー）</label>
+            <select id="budgetSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-300">
+                <option value="">気にしない</option>
+                <option value="B002">〜3000円（安く済ませる）</option>
+                <option value="B003">3001〜4000円（標準）</option>
+                <option value="B008">4001円以上（ちょっと贅沢）</option>
+            </select>
+        </div>
+    </div>
+
+    <button onclick="runGacha()" class="gacha-btn w-full bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold py-4 rounded-full shadow-lg text-xl mb-8">
+        ガチャを回す！
+    </button>
+
+    <div id="resultArea" class="w-full hidden animate-fade-in">
+        <div class="border-t pt-6">
+            <p class="text-center text-gray-500 text-sm mb-2">運命の行き先は...</p>
+            
+            <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                <img id="shopImage" src="" alt="店画像" class="w-full h-48 object-cover bg-gray-200">
+                <div class="p-4">
+                    <p id="shopGenre" class="text-xs text-pink-500 font-bold mb-1">ジャンル</p>
+                    <h2 id="shopName" class="text-xl font-bold text-gray-800 leading-tight mb-2">店名がここに入ります</h2>
+                    <p id="shopAccess" class="text-sm text-gray-500 mb-4">アクセス情報</p>
+                    
+                    <a id="shopLink" href="#" target="_blank" class="block w-full text-center bg-gray-800 text-white py-3 rounded-lg font-bold text-sm">
+                        詳しく見る（予約）
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-auto py-6 text-center text-gray-400 text-xs">
+        Powered by ホットペッパー Webサービス
+    </footer>
+</div>
+
+<script>
+    // ★★★ ここにAPIキーを入れてください！ ★★★
+    const API_KEY = "aaab18fbbb4f73e6"; 
+
+    function runGacha() {
+        if (API_KEY === "ここにあなたのAPIキーを貼り付ける") {
+            alert("APIキーが設定されていません。コードを編集してキーを入力してください！");
+            return;
+        }
+
+        const middleArea = document.getElementById('areaSelect').value;
+        const genre = document.getElementById('genreSelect').value;
+        const budget = document.getElementById('budgetSelect').value;
+
+        // JSONP用のコールバック関数名を指定
+        const callbackName = 'callback_' + Math.floor(Math.random() * 100000);
+        
+        // APIリクエストURLの構築
+        // count=100 で最大100件取得し、その中からランダムに選ぶ
+        let url = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${API_KEY}&middle_area=${middleArea}&genre=${genre}&count=100&format=jsonp&callback=${callbackName}`;
+        
+        if(budget) {
+            url += `&budget=${budget}`;
+        }
+
+        // ローディング表示（簡易）
+        const btn = document.querySelector('.gacha-btn');
+        const originalText = btn.innerText;
+        btn.innerText = "検索中...";
+        btn.disabled = true;
+
+        // グローバルスコープにコールバック関数を定義
+        window[callbackName] = function(data) {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            
+            if (!data.results || !data.results.shop || data.results.shop.length === 0) {
+                alert("条件に合うお店が見つかりませんでした...別の条件で試してみて！");
+                return;
+            }
+
+            // ランダムに1件選出
+            const shops = data.results.shop;
+            const winner = shops[Math.floor(Math.random() * shops.length)];
+            
+            displayResult(winner);
+            
+            // 後始末：scriptタグとコールバック関数を削除
+            delete window[callbackName];
+            document.getElementById(callbackName).remove();
+        };
+
+        // JSONPを実行するためのscriptタグを生成
+        const script = document.createElement('script');
+        script.src = url;
+        script.id = callbackName;
+script.onerror = function() {
+    alert("エラーが発生しました！APIキーが正しいか確認してください。\nまた、広告ブロック機能がONだと動かないことがあります。");
+    btn.innerText = "もう一度";
+    btn.disabled = false;
+};
+        document.body.appendChild(script);
+    }
+
+    function displayResult(shop) {
+        document.getElementById('resultArea').classList.remove('hidden');
+        
+        document.getElementById('shopName').innerText = shop.name;
+        document.getElementById('shopGenre').innerText = shop.genre.name;
+        document.getElementById('shopAccess').innerText = shop.mobile_access;
+        document.getElementById('shopLink').href = shop.urls.pc; // ここをアフィリエイトリンクに変えると収益化
+        
+        // 画像がある場合とない場合の処理
+        const imgUrl = shop.photo.pc.l || shop.photo.mobile.l;
+        if(imgUrl) {
+            document.getElementById('shopImage').src = imgUrl;
+        } else {
+            document.getElementById('shopImage').src = "https://via.placeholder.com/400x200?text=No+Image";
+        }
+
+        // 結果までスクロール
+        document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
