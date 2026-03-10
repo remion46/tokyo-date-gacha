@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>東京デートガチャ</title>
+    
+    <title>明日のデートどうしよ？を即決！東京デートガチャ</title>
+    <meta name="description" content="「明日のデートどうしよ？」「今日のご飯何食べる？」と迷った時に。新宿・渋谷・銀座などのエリアと予算を選ぶだけで、AIがランダムにおしゃれなデートスポット（飲食店）を提案する無料のガチャアプリです。">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -11,6 +14,18 @@
         .gacha-btn { transition: transform 0.1s; }
         .gacha-btn:active { transform: scale(0.95); }
     </style>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "東京デートガチャ",
+      "url": "https://tokyo-date-gacha.vercel.app/",
+      "applicationCategory": "LifestyleApplication",
+      "description": "「明日のデートどうしよ？」と迷った時に、エリアと予算からランダムで飲食店を決定する無料のWebアプリです。",
+      "operatingSystem": "All"
+    }
+    </script>
 </head>
 <body>
 
@@ -78,14 +93,17 @@
 
     <div id="debugArea" class="hidden w-full p-4 mt-4 bg-red-100 text-red-800 text-xs font-mono break-all rounded"></div>
 
+    <div style="max-width: 600px; margin: 20px auto 40px; padding: 20px; text-align: left; font-size: 0.85em; color: #555; background-color: #f9f9f9; border-radius: 8px;">
+        <h3 style="font-size: 1.1em; margin-bottom: 10px; font-weight: bold;">明日のデートどうしよ？と迷ったら</h3>
+        <p style="line-height: 1.6; margin: 0;">「毎回同じようなお店になっちゃう」「相手に『どこでもいいよ』と言われて困っている」——そんな時は東京デートガチャにお任せください。エリアや予算の条件を入れて回すだけで、ホットペッパーのデータから運命の1店舗をランダムに決定します。優柔不断なカップルの決断疲れを解決するWebアプリです。</p>
+    </div>
+
     <footer class="mt-auto py-6 text-center text-gray-400 text-xs">
         Powered by ホットペッパー Webサービス
     </footer>
 </div>
 
 <script>
-    // ★APIキーはもうここには書きません！
-
     async function runGacha() {
         const btn = document.querySelector('.gacha-btn');
         const originalText = btn.innerText;
@@ -97,7 +115,6 @@
         const genre = document.getElementById('genreSelect').value;
         const budget = document.getElementById('budgetSelect').value;
 
-        // 自分のサーバー（api/gacha.js）にリクエストを送る
         let targetUrl = `/api/gacha?middle_area=${middleArea}&genre=${genre}`;
         if(budget) targetUrl += `&budget=${budget}`;
 
@@ -148,4 +165,3 @@
 
 </body>
 </html>
-
