@@ -1,0 +1,93 @@
+# ==========================================
+# TOKYO DATE GACHA - AIO Optimized robots.txt
+# ==========================================
+
+# 一般的な検索エンジン（Google, Bing等）をすべて許可
+User-agent: *
+Allow: /
+
+# ------------------------------------------
+# OpenAI (ChatGPT / SearchGPT)
+# ------------------------------------------
+# GPTの事前学習用クローラー
+User-agent: GPTBot
+Allow: /
+# ChatGPTのリアルタイムWeb検索用ボット
+User-agent: ChatGPT-User
+Allow: /
+# OpenAIの新しい検索クローラー
+User-agent: OAI-SearchBot
+Allow: /
+
+# ------------------------------------------
+# Perplexity AI
+# ------------------------------------------
+# Perplexityのメインクローラー
+User-agent: PerplexityBot
+Allow: /
+
+# ------------------------------------------
+# Anthropic (Claude)
+# ------------------------------------------
+# Claudeのデータ収集用
+User-agent: ClaudeBot
+Allow: /
+# ClaudeのリアルタイムWebアクセス用
+User-agent: Claude-Web
+Allow: /
+
+# ------------------------------------------
+# Google (Gemini / AI Overviews)
+# ------------------------------------------
+# Gemini等のAI学習用（Google検索とは別枠）
+User-agent: Google-Extended
+Allow: /
+# Googleの研究開発・AI用ボット
+User-agent: GoogleOther
+Allow: /
+
+# ------------------------------------------
+# Microsoft (Copilot / Bing AI)
+# ------------------------------------------
+# Copilotのデータ元となるBingのメインクローラー
+User-agent: bingbot
+Allow: /
+
+# ------------------------------------------
+# Meta (Meta AI / Llama)
+# ------------------------------------------
+User-agent: Meta-ExternalAgent
+Allow: /
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+# ------------------------------------------
+# Apple (Apple Intelligence)
+# ------------------------------------------
+# AppleのAI学習用クローラー
+User-agent: Applebot-Extended
+Allow: /
+
+# ------------------------------------------
+# その他の有力AI・LLM企業・データセット
+# ------------------------------------------
+# Cohere（企業向け高精度LLM）
+User-agent: cohere-ai
+Allow: /
+# Common Crawl（世界中のオープンソースLLMが学習に使う巨大データセット）
+User-agent: CCBot
+Allow: /
+# Diffbot（WebページをAI向けの構造化データに変換するボット）
+User-agent: Diffbot
+Allow: /
+# ByteDance (TikTok等のAI開発用)
+User-agent: Bytespider
+Allow: /
+# Amazon (Alexa等のAI学習用)
+User-agent: Amazonbot
+Allow: /
+
+# ------------------------------------------
+# AIへの道案内（Sitemap / llms.txt）
+# ------------------------------------------
+Sitemap: https://tokyo-date-gacha.vercel.app/llms.txt
